@@ -1,0 +1,22 @@
+/* used to hide the control on the page */
+.ui-hidden-control {
+	display: none;
+}
+
+/* Used to text-align the term picker text to the left */
+.ui-align-left .ms-taxonomy-writeableregion {
+    text-align: left;
+}
+
+/* ensures that a term picker suggestion dropdown is scrollable */
+.ui-mms-panel .ms-taxonomy-suggestion-group {
+    max-height: 80px;
+}
+
+/* Used to remove the title of a panel, but retain the naming in the controls in use pane */
+fieldset.ui-hidden-legend {
+    border: 0px;
+}
+fieldset.ui-hidden-legend legend {
+    display: none;
+}
