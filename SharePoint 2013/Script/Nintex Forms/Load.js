@@ -17,7 +17,7 @@
         if (path.indexOf('/') != 0) {
             return;
         }
-        if ($.inArray(path, $._loadJS)) {
+        if ($.inArray(path, $._loadJS) != -1) {
             return;
         }
 
