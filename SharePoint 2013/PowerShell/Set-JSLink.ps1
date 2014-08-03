@@ -11,5 +11,5 @@ $path = Read-Host "Enter path to script"
 $web = Get-SPWeb $webUrl
 $field = $web.Fields[$fieldName]
 $field.JSLink = $path
-$field.Update($true_)
+$field.Update($true)
 $web.Dispose()
