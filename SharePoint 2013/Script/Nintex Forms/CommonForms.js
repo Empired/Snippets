@@ -72,18 +72,20 @@
 			}, 0);
 	   }
 	   
-	   setTimeout(function() {
+	   $(document).on('nf-visible', function() {
 			pickers.each(function(index, el) {
+				var containers = $(el).find('.ip-container');
+				containers.css('overflow-y', 'hidden');
 				var textArea = $(el).find('.ip-container').find('textarea');
 				textArea.on('autocompleteselect', function(event, ui) {
 					invalidate($(this));
 				});
-				var items = container.find('div.ip-item:visible');
+				var items = $(el).find('div.ip-item:visible');
 				if (items.length > 0) {
 					invalidate($(items[0]));
 				}
 			})
-	   }, 1000);
+	   });
 	}
 
 	var init = false
@@ -91,6 +93,15 @@
 		if (init) {
 			return;
 		}
+		var timer = setInterval(function() {
+			var filler = $('#formFillerDiv');
+			if (filler.is(':visible')) {
+				if ($('ul.ui-widget').length > 0) {
+					clearInterval(timer);
+					$(document).trigger('nf-visible');
+				}
+			}
+		}, 10);
 		configurePeoplePickers();
 		init = true;
 	};
