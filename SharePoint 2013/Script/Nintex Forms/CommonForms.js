@@ -49,5 +49,49 @@
             validator.apply(null, originalArgs);
         }
     };
+	
+	function configurePeoplePickers() {
+	   var pickers = $('.js-pp-single');
+	   if (pickers.length == 0) {
+		 return;
+	   }
+	   
+	   function invalidate(el) {
+			var container = el.parent();
+			setTimeout(function() {
+				var items = container.find('div.ip-item');
+				var visible = items.length > 0;
+				if (visible) {
+					items.find('span').on('remove', function(e) {
+						invalidate(el);
+					});
+					container.find('textarea').hide();
+				} else {
+					container.find('textarea').show();
+				}
+			}, 0);
+	   }
+	   
+	   setTimeout(function() {
+			pickers.each(function(index, el) {
+				var textArea = $(el).find('.ip-container').find('textarea');
+				textArea.on('autocompleteselect', function(event, ui) {
+					invalidate($(this));
+				});
+				var items = container.find('div.ip-item:visible');
+				if (items.length > 0) {
+					invalidate($(items[0]));
+				}
+			})
+	   }, 1000);
+	}
 
+	var init = false
+	$.fn.applyConventions = function() {
+		if (init) {
+			return;
+		}
+		configurePeoplePickers();
+		init = true;
+	};
 })(window, NWF$, SP);
