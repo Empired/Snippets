@@ -41,6 +41,27 @@
         return ui;
     }
 	
+	/* Used to apply additional callbacks after SPLookup calls */
+	exports.hookSPLookup = function(NWF, predicate, callback) {
+        if (NWF === null)
+          return;
+        if (predicate === null)
+          return;
+        if (callback === null)
+          return;  
+        
+        var old = NWF.RuntimeFunctions.SPLookup;
+        NWF.RuntimeFunctions.SPLookup = function(listNameAndOptionalSitePath, filterColumn, filterValue, returnValueColumn, multi, filterColumnType) {
+           var promise = old.apply(this, arguments);
+           if (predicate(returnValueColumn, arguments)) {
+               return promise.then(function(data) {
+	           	callback(data);
+               });
+           }
+           return promise;
+        };
+	};
+	
 	exports.curry = function (validator) {
         var originalArgs = Array.prototype.slice.call(arguments, 1);
         return function (source, args) {
