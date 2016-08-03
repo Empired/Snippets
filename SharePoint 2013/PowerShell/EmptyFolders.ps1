@@ -3,6 +3,7 @@ Param (
   [String] $siteUrl,
   [String] $listName = "",
   [int] $batchSize = 100,
+  [String] $reportName = "export.csv",
   [switch]$Delete,
   [switch]$EmptyRecyleBin,
   [switch]$NoChecks
@@ -70,6 +71,18 @@ function Query($list) {
 		return $items;
 }
 
+function Report($list, $items, $csvObj) {
+	foreach ($item in $items)
+	{
+		$itemObj = New-Object PSObject
+		$itemUrl = $list.ParentWeb.Site.MakeFullUrl($item.Folder.ServerRelativeUrl)
+		$itemObj | Add-Member -MemberType NoteProperty -Name "Folder URL" -Value $itemUrl
+		$itemObj | Add-Member -MemberType NoteProperty -Name "File Count" -Value $item.Folder.Files.Count
+		$index = $csvObj.Add($itemObj)
+		$itemObj = $null
+	}
+}
+
 function Batch-Delete($list, $items, $batchSize, $doChecks) {
 
   $batch = "<?xml version=`"1.0`" encoding=`"UTF-8`"?><Batch>"
@@ -86,6 +99,7 @@ function Batch-Delete($list, $items, $batchSize, $doChecks) {
 			Throw  "item was unexpected non-empty folder $item.Folder.ServerRelativeUrl"	
 		}
 	}
+	
     $batch += "<Method><SetList Scope=`"Request`">$($list.ID)</SetList><SetVar Name=`"ID`">$($item.ID)</SetVar><SetVar Name=`"Cmd`">Delete</SetVar><SetVar Name=`"owsfileref`">$($item.Folder.ServerRelativeUrl)</SetVar></Method>"
 
     if ($i -ge $batchSize) { break }
@@ -101,6 +115,11 @@ $doChecks = $true;
 if ($NoCheck) {
 	$doChecks = $false;
 }
+$doReport = $true;
+if ($reportName -eq "") {
+	$doReport = $false;
+}
+$csvObj= new-object System.Collections.ArrayList($null)
 $site = Get-SPSite($siteUrl);
 foreach ($web in $site.AllWebs) {
 	Write-Host "`rProcessing W:$($web.ServerRelativeUrl) for empty folders"
@@ -122,12 +141,15 @@ foreach ($web in $site.AllWebs) {
 			if ($remaining -eq $false) {
 				break;
 			}
+			if ($doReport) {
+				Report $list $items $csvObj
+			}
 			Write-Host "`r$($list.RootFolder.ServerRelativeUrl) - $count folders remaining" -nonewline
 			Write-Host 
 			if ($Delete) { } else {
 				break;
 			}
-			Batch-Delete $list $items $batchSize $doChecks
+			Batch-Delete $list $items $batchSize $doChecks $csvObj
 		} while ($remaining -eq $true)		
 	}
 	if ($EmptyRecyleBin) {
@@ -135,5 +157,8 @@ foreach ($web in $site.AllWebs) {
 		$web.RecycleBin.DeleteAll()
 	}
 	#$web.RecycleBin.RestoreAll()
+}
+if (($csvObj.Count -gt 0) -and ($reportName -ne "")) {
+	$csvObj | Export-Csv -Path $reportName -NoTypeInformation
 }
 Write-Host "---- Completed ----"
