@@ -157,7 +157,9 @@ foreach ($web in $site.AllWebs) {
 		$web.RecycleBin.DeleteAll()
 	}
 	#$web.RecycleBin.RestoreAll()
+	$web.Dispose();
 }
+$site.Dispose();
 if (($csvObj.Count -gt 0) -and ($reportName -ne "")) {
 	$csvObj | Export-Csv -Path $reportName -NoTypeInformation
 }
